@@ -35,14 +35,6 @@
                     </span>
                     <h4 class="text-section">Menu</h4>
                 </li>
-                @if (in_array(Auth::user()->role, ['roti', 'manager']))
-                    <li class="nav-item {{ request()->routeIs('roti.detail') ? 'active' : '' }}">
-                        <a href="{{ route('roti.detail') }}">
-                            <i class="fas fa-file"></i>
-                            <p>Roti</p>
-                        </a>
-                    </li>
-                @endif
 
                 @if (in_array(Auth::user()->role, ['bar', 'manager']))
                     <li class="nav-item {{ request()->routeIs('bar.detail') ? 'active' : '' }}">
@@ -61,6 +53,15 @@
                         </a>
                     </li>
                 @endif
+                @if (in_array(Auth::user()->role, ['roti', 'manager']))
+                    <li class="nav-item {{ request()->routeIs('roti.detail') ? 'active' : '' }}">
+                        <a href="{{ route('roti.detail') }}">
+                            <i class="fas fa-file"></i>
+                            <p>Roti</p>
+                        </a>
+                    </li>
+                @endif
+
 
 
                 @if (Auth::user()->role == 'manager')
