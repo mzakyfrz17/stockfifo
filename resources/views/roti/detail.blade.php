@@ -12,7 +12,7 @@
                         <table id="basic-datatables" class="basic-datatables display table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Nama Roti (Kode)</th>
+                                    <th>Nama Barang (Kode)</th>
                                     <th>Tanggal</th>
                                     <th>Stok Awal</th>
                                     <th>Barang Masuk</th>

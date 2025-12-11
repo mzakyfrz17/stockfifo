@@ -5,18 +5,18 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h4>Laporan Detail Stok kitchen</h4>
+                    <h4>Laporan Detail Stok Kitchen</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table id="basic-datatables" class="basic-datatables display table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Nama kitchen (Kode)</th>
+                                    <th>Nama Barang (Kode)</th>
                                     <th>Tanggal</th>
                                     <th>Stok Awal</th>
-                                    <th>kitchenang Masuk</th>
-                                    <th>kitchenang Keluar</th>
+                                    <th>Barang Masuk</th>
+                                    <th>Barang Keluar</th>
                                     <th>Stok Akhir</th>
                                     <th>Stok Minimal</th>
                                     <th>Satuan</th>
@@ -36,29 +36,29 @@
                                             <td>{{ $detail['stok_minimal'] }}</td>
                                             <td>{{ $detail['satuan'] }}</td>
                                             <td>
-                                                {{-- kitchenang Datang --}}
+                                                {{-- Barang Datang --}}
                                                 @if ($detail['barang_datang'] > 0)
                                                     <button class="btn btn-sm btn-primary mb-2" data-bs-toggle="modal"
                                                         data-bs-target="#modalDatang{{ $detail['id'] }}">
-                                                        Edit kitchenang Datang
+                                                        Edit Barang Datang
                                                     </button>
                                                 @else
                                                     <button class="btn btn-sm btn-success mb-2" data-bs-toggle="modal"
                                                         data-bs-target="#modalDatang{{ $detail['id'] }}">
-                                                        Input kitchenang Datang
+                                                        Input Barang Datang
                                                     </button>
                                                 @endif
 
-                                                {{-- kitchenang Terpakai --}}
+                                                {{-- Barang Terpakai --}}
                                                 @if ($detail['barang_terpakai'] > 0)
                                                     <button class="btn btn-sm btn-primary mb-2" data-bs-toggle="modal"
                                                         data-bs-target="#modalTerpakai{{ $detail['id'] }}">
-                                                        Edit kitchenang Terpakai
+                                                        Edit Barang Terpakai
                                                     </button>
                                                 @else
                                                     <button class="btn btn-sm btn-warning mb-2" data-bs-toggle="modal"
                                                         data-bs-target="#modalTerpakai{{ $detail['id'] }}">
-                                                        Input kitchenang Terpakai
+                                                        Input Barang Terpakai
                                                     </button>
                                                 @endif
 
@@ -70,7 +70,7 @@
                                             </td>
                                         </tr>
 
-                                        <!-- Modal kitchenang Datang -->
+                                        <!-- Modal Barang Datang -->
                                         <div class="modal fade" id="modalDatang{{ $detail['id'] }}" tabindex="-1">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
@@ -79,7 +79,7 @@
                                                         <div class="modal-header">
                                                             <h5 class="modal-title">
                                                                 {{ $detail['barang_datang'] > 0 ? 'Edit' : 'Input' }}
-                                                                kitchenang Datang
+                                                                Barang Datang
                                                             </h5>
                                                             <button type="button" class="btn-close"
                                                                 data-bs-dismiss="modal"></button>
@@ -93,7 +93,7 @@
                                                             <input type="hidden" name="tanggal"
                                                                 value="{{ $detail['tanggal'] }}">
                                                             <div class="form-group">
-                                                                <label>Jumlah kitchenang Datang</label>
+                                                                <label>Jumlah Barang Datang</label>
                                                                 <input type="number" name="jumlah" class="form-control"
                                                                     value="{{ $detail['barang_datang'] > 0 ? $detail['barang_datang'] : '' }}"
                                                                     required>
@@ -107,7 +107,7 @@
                                             </div>
                                         </div>
 
-                                        <!-- Modal kitchenang Terpakai -->
+                                        <!-- Modal Barang Terpakai -->
                                         <div class="modal fade" id="modalTerpakai{{ $detail['id'] }}" tabindex="-1">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
@@ -116,7 +116,7 @@
                                                         <div class="modal-header">
                                                             <h5 class="modal-title">
                                                                 {{ $detail['barang_terpakai'] > 0 ? 'Edit' : 'Input' }}
-                                                                kitchenang Terpakai
+                                                                Barang Terpakai
                                                             </h5>
                                                             <button type="button" class="btn-close"
                                                                 data-bs-dismiss="modal"></button>
@@ -129,7 +129,7 @@
                                                             <input type="hidden" name="tanggal"
                                                                 value="{{ $detail['tanggal'] }}">
                                                             <div class="form-group">
-                                                                <label>Jumlah kitchenang Terpakai</label>
+                                                                <label>Jumlah Barang Terpakai</label>
                                                                 <input type="number" name="jumlah" class="form-control"
                                                                     value="{{ $detail['barang_terpakai'] > 0 ? $detail['barang_terpakai'] : '' }}"
                                                                     required>

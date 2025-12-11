@@ -5,14 +5,14 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h4>Laporan Detail Stok bar</h4>
+                    <h4>Laporan Detail Stok Bar</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table id="basic-datatables" class="basic-datatables display table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Nama bar (Kode)</th>
+                                    <th>Nama Barang (Kode)</th>
                                     <th>Tanggal</th>
                                     <th>Stok Awal</th>
                                     <th>Barang Masuk</th>
@@ -26,7 +26,7 @@
                             <tbody>
                                 @foreach ($laporan as $item)
                                     @foreach ($item['detail'] as $detail)
-                                        <tr @if ($detail['stok_akhir'] < $detail['stok_minimal'])  @endif>
+                                        <tr @if ($detail['stok_akhir'] < $detail['stok_minimal']) style="background:#ffdddd" @endif>
                                             <td>{{ $item['bar']->nama }} ({{ $item['bar']->kd_bar }})</td>
                                             <td>{{ $detail['tanggal'] }}</td>
                                             <td>{{ $detail['stok_awal'] }}</td>
@@ -36,6 +36,7 @@
                                             <td>{{ $detail['stok_minimal'] }}</td>
                                             <td>{{ $detail['satuan'] }}</td>
                                             <td>
+
                                                 {{-- Barang Datang --}}
                                                 @if ($detail['barang_datang'] > 0)
                                                     <button class="btn btn-sm btn-primary mb-2" data-bs-toggle="modal"
@@ -67,6 +68,7 @@
                                                     data-bs-target="#modalFIFO{{ $detail['id'] }}">
                                                     Detail FIFO
                                                 </button>
+
                                             </td>
                                         </tr>
 
@@ -86,8 +88,7 @@
                                                         </div>
                                                         <div class="modal-body">
                                                             <p><b>{{ $item['bar']->nama }}</b>
-                                                                ({{ $item['bar']->kd_bar }})
-                                                            </p>
+                                                                ({{ $item['bar']->kd_bar }})</p>
                                                             <input type="hidden" name="bar_id"
                                                                 value="{{ $item['bar']->id }}">
                                                             <input type="hidden" name="tanggal"
@@ -142,49 +143,16 @@
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <!-- Modal FIFO -->
-                                        {{-- <div class="modal fade" id="modalFIFO{{ $detail['id'] }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Detail FIFO</h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p><b>{{ $item['bar']->nama }}</b> ({{ $item['bar']->kd_bar }})
-                                                        </p>
-                                                        <table class="table table-bordered">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Tanggal Masuk</th>
-                                                                    <th>Jumlah</th>
-                                                                    <th>Sisa</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @foreach ($detail['fifo'] as $fifo)
-                                                                    <tr>
-                                                                        <td>{{ $fifo['tanggal_masuk'] }}</td>
-                                                                        <td>{{ $fifo['jumlah'] }}</td>
-                                                                        <td>{{ $fifo['sisa'] }}</td>
-                                                                    </tr>
-                                                                @endforeach
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> --}}
                                     @endforeach
                                 @endforeach
                             </tbody>
                         </table>
+
+                        {{-- Modal FIFO dipisah agar tidak error --}}
                         @foreach ($laporan as $item)
                             @foreach ($item['detail'] as $detail)
                                 <div class="modal fade" id="modalFIFO{{ $detail['id'] }}" tabindex="-1">
-                                    <div class="modal-dialog modal-lg"> {{-- Bisa modal-lg atau modal-xl --}}
+                                    <div class="modal-dialog modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title">Detail FIFO</h5>
@@ -216,6 +184,7 @@
                                 </div>
                             @endforeach
                         @endforeach
+
                     </div>
                 </div>
             </div>

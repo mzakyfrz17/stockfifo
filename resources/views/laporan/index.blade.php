@@ -25,7 +25,7 @@
                         <input type="number" name="tahun" class="form-control" value="{{ date('Y') }}" required>
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary" type="submit">Filter</button>
+                        <button class="btn btn-primary" type="submit">Tampilkan</button>
                     </div>
                 </form>
 

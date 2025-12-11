@@ -3,8 +3,7 @@
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
             <a href="index.html" class="logo">
-                <img src="{{ asset('assets/img/kaiadmin/logo_light.svg') }}" alt="navbar brand" class="navbar-brand"
-                    height="20" />
+                <img src="{{ asset('assets/img/ktb.png') }}" alt="navbar brand" class="navbar-brand" height="65" />
             </a>
             <div class="nav-toggle">
                 <button class="btn btn-toggle toggle-sidebar">
@@ -40,7 +39,7 @@
                     <li class="nav-item {{ request()->routeIs('bar.detail') ? 'active' : '' }}">
                         <a href="{{ route('bar.detail') }}">
                             <i class="fas fa-file"></i>
-                            <p>Barista</p>
+                            <p>Bar</p>
                         </a>
                     </li>
                 @endif
@@ -80,7 +79,7 @@
                     <li class="nav-item {{ request()->routeIs('bar.index') ? 'active' : '' }}">
                         <a href="{{ route('bar.index') }}">
                             <i class="fas fa-chart-bar"></i>
-                            <p>Data Barista</p>
+                            <p>Data Bar</p>
                         </a>
                     </li>
                     <li class="nav-item {{ request()->routeIs('kitchen.index') ? 'active' : '' }}">
