@@ -7,7 +7,7 @@
                 <div class="card-header">
                     {{-- <h4>bar</h4> --}}
                     <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addbarModal">+ Tambah
-                        bar</button>
+                        Bar</button>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

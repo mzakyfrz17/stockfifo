@@ -7,7 +7,7 @@
                 <div class="card-header">
                     {{-- <h4>kitchen</h4> --}}
                     <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addkitchenModal">+ Tambah
-                        kitchen</button>
+                        Kitchen</button>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
