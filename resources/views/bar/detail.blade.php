@@ -19,7 +19,7 @@
                                     <th>Barang Keluar</th>
                                     <th>Stok Akhir</th>
                                     <th>Stok Minimal</th>
-                                    <th>Satuan</th>
+                                    {{-- <th>Satuan</th> --}}
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -30,11 +30,28 @@
                                             <td>{{ $item['bar']->nama }} ({{ $item['bar']->kd_bar }})</td>
                                             <td>{{ $detail['tanggal'] }}</td>
                                             <td>{{ $detail['stok_awal'] }}</td>
-                                            <td>{{ $detail['barang_datang'] }}</td>
-                                            <td>{{ $detail['barang_terpakai'] }}</td>
+                                            <td>
+                                                <span>
+                                                    {{ $detail['barang_datang'] }} {{ $detail['satuan'] }}
+                                                </span><br>
+
+                                                <small class="text-muted">
+                                                    {{ $detail['user_masuk'] }} <br>
+                                                </small>
+                                            </td>
+
+                                            <td>
+                                                <span>
+                                                    {{ $detail['barang_terpakai'] }} {{ $detail['satuan'] }}
+                                                </span><br>
+
+                                                <small class="text-muted">
+                                                    {{ $detail['user_keluar'] }}
+                                                </small>
+                                            </td>
                                             <td>{{ $detail['stok_akhir'] }}</td>
                                             <td>{{ $detail['stok_minimal'] }}</td>
-                                            <td>{{ $detail['satuan'] }}</td>
+                                            {{-- <td>{{ $detail['satuan'] }}</td> --}}
                                             <td>
 
                                                 {{-- Barang Datang --}}
@@ -88,7 +105,8 @@
                                                         </div>
                                                         <div class="modal-body">
                                                             <p><b>{{ $item['bar']->nama }}</b>
-                                                                ({{ $item['bar']->kd_bar }})</p>
+                                                                ({{ $item['bar']->kd_bar }})
+                                                            </p>
                                                             <input type="hidden" name="bar_id"
                                                                 value="{{ $item['bar']->id }}">
                                                             <input type="hidden" name="tanggal"

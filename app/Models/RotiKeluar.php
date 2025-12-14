@@ -13,4 +13,8 @@ class RotiKeluar extends Model
     {
         return $this->belongsTo(Roti::class);
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

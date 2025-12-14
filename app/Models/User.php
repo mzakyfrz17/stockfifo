@@ -43,4 +43,34 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function kitchenMasuk()
+    {
+        return $this->hasMany(KitchenMasuk::class);
+    }
+
+    public function kitchenKeluar()
+    {
+        return $this->hasMany(KitchenKeluar::class);
+    }
+
+    public function barMasuk()
+    {
+        return $this->hasMany(BarMasuk::class);
+    }
+
+    public function barKeluar()
+    {
+        return $this->hasMany(BarKeluar::class);
+    }
+
+    public function rotiMasuk()
+    {
+        return $this->hasMany(RotiMasuk::class);
+    }
+
+    public function rotiKeluar()
+    {
+        return $this->hasMany(RotiKeluar::class);
+    }
 }

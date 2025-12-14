@@ -7,13 +7,13 @@ use App\Models\RotiMasuk;
 use App\Models\RotiKeluar;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class RotiController extends Controller
 {
     // =====================
-    // MASTER DATA ROTI
+    // MASTER DATA
     // =====================
-
     public function index()
     {
         $roti = Roti::all();
@@ -23,10 +23,10 @@ class RotiController extends Controller
     public function storeRoti(Request $request)
     {
         $request->validate([
-            'kd_roti' => 'required|unique:roti,kd_roti',
-            'nama' => 'required',
-            'satuan' => 'required',
-            'stok_minimal' => 'required|integer',
+            'kd_roti'       => 'required|unique:roti,kd_roti',
+            'nama'          => 'required',
+            'satuan'        => 'required',
+            'stok_minimal'  => 'required|integer',
         ]);
 
         Roti::create($request->all());
@@ -38,10 +38,10 @@ class RotiController extends Controller
         $roti = Roti::findOrFail($id);
 
         $request->validate([
-            'kd_roti' => 'required|unique:roti,kd_roti,' . $roti->id,
-            'nama' => 'required',
-            'satuan' => 'required',
-            'stok_minimal' => 'required|integer',
+            'kd_roti'       => 'required|unique:roti,kd_roti,' . $roti->id,
+            'nama'          => 'required',
+            'satuan'        => 'required',
+            'stok_minimal'  => 'required|integer',
         ]);
 
         $roti->update($request->all());
@@ -50,14 +50,9 @@ class RotiController extends Controller
 
     public function destroy($id)
     {
-        $roti = Roti::findOrFail($id);
-        $roti->delete();
-        return redirect()->route('roti.index')->with('success', 'Data roti berhasil dihapus');
+        Roti::findOrFail($id)->delete();
+        return back()->with('success', 'Data roti berhasil dihapus');
     }
-
-    // =====================
-    // FIFO
-    // =====================
 
     // =====================
     // BARANG MASUK
@@ -65,37 +60,30 @@ class RotiController extends Controller
     public function masuk(Request $request)
     {
         $request->validate([
-            'roti_id' => 'required|exists:roti,id',
-            'tanggal' => 'required|date',
-            'jumlah'  => 'required|integer|min:1',
+            'roti_id'  => 'required|exists:roti,id',
+            'tanggal'  => 'required|date',
+            'jumlah'   => 'required|integer|min:1',
         ]);
 
-        // hanya boleh input hari ini
         if ($request->tanggal !== Carbon::today()->toDateString()) {
-            return back()->with('error', 'Input barang masuk hanya bisa untuk hari ini!');
+            return back()->with('error', 'Input hanya untuk hari ini');
         }
 
-        // cek data masuk untuk hari ini
-        $existing = RotiMasuk::where('roti_id', $request->roti_id)
-            ->where('tanggal', $request->tanggal)
-            ->first();
-
-        if ($existing) {
-            // kalau sudah ada → update jumlah (replace)
-            $existing->jumlah = $request->jumlah;
-            $existing->sisa   = $request->jumlah;
-            $existing->save();
-        } else {
-            // kalau belum ada → buat data baru (tidak menimpa data kemarin)
-            RotiMasuk::create([
+        RotiMasuk::updateOrCreate(
+            [
                 'roti_id' => $request->roti_id,
-                'tanggal' => Carbon::today()->toDateString(),
+                'tanggal' => $request->tanggal,
+            ],
+            [
                 'jumlah'  => $request->jumlah,
-                'sisa'    => $request->jumlah,
-            ]);
-        }
+                'sisa'    => 0, // reset dulu
+                'user_id' => Auth::id(),
+            ]
+        );
 
-        return back()->with('success', 'Barang masuk berhasil dicatat/diupdate');
+        $this->recalculateFIFO($request->roti_id);
+
+        return back()->with('success', 'Barang masuk disimpan');
     }
 
     // =====================
@@ -104,123 +92,135 @@ class RotiController extends Controller
     public function keluar(Request $request)
     {
         $request->validate([
-            'roti_id' => 'required|exists:roti,id',
-            'tanggal' => 'required|date',
-            'jumlah'  => 'required|integer|min:1',
+            'roti_id'  => 'required|exists:roti,id',
+            'tanggal'  => 'required|date',
+            'jumlah'   => 'required|integer|min:1',
         ]);
 
-        // hanya boleh input hari ini
         if ($request->tanggal !== Carbon::today()->toDateString()) {
-            return back()->with('error', 'Input barang keluar hanya bisa untuk hari ini!');
+            return back()->with('error', 'Input hanya untuk hari ini');
         }
 
-        // cek data keluar untuk hari ini
-        $existing = RotiKeluar::where('roti_id', $request->roti_id)
-            ->where('tanggal', $request->tanggal)
-            ->first();
-
-        if ($existing) {
-            // update data keluar hari ini
-            $existing->jumlah = $request->jumlah;
-            $existing->save();
-        } else {
-            // buat baru (tidak menimpa kemarin)
-            RotiKeluar::create([
+        RotiKeluar::updateOrCreate(
+            [
                 'roti_id' => $request->roti_id,
-                'tanggal' => Carbon::today()->toDateString(),
+                'tanggal' => $request->tanggal,
+            ],
+            [
                 'jumlah'  => $request->jumlah,
-            ]);
-        }
+                'user_id' => Auth::id(),
+            ]
+        );
 
-        // FIFO jalan seperti biasa
-        $jumlahKeluar = $request->jumlah;
+        $this->recalculateFIFO($request->roti_id);
 
-        $stokMasuk = RotiMasuk::where('roti_id', $request->roti_id)
-            ->where('sisa', '>', 0)
-            ->orderBy('tanggal', 'asc')
-            ->get();
-
-        foreach ($stokMasuk as $batch) {
-            if ($jumlahKeluar <= 0) break;
-
-            if ($batch->sisa >= $jumlahKeluar) {
-                $batch->sisa -= $jumlahKeluar;
-                $batch->save();
-                $jumlahKeluar = 0;
-            } else {
-                $jumlahKeluar -= $batch->sisa;
-                $batch->sisa = 0;
-                $batch->save();
-            }
-        }
-
-        return back()->with('success', 'Barang keluar berhasil dicatat/diupdate (FIFO)');
+        return back()->with('success', 'Barang keluar disimpan (FIFO)');
     }
 
+    // =====================
+    // FIFO RESET & HITUNG ULANG
+    // =====================
+    private function recalculateFIFO($rotiId)
+    {
+        $masuk = RotiMasuk::where('roti_id', $rotiId)
+            ->orderBy('tanggal')
+            ->orderBy('created_at')
+            ->get();
 
+        $keluarTotal = RotiKeluar::where('roti_id', $rotiId)->sum('jumlah');
+
+        // reset sisa = jumlah
+        foreach ($masuk as $m) {
+            $m->sisa = $m->jumlah;
+            $m->save();
+        }
+
+        // FIFO potong ulang
+        foreach ($masuk as $m) {
+            if ($keluarTotal <= 0) break;
+
+            if ($m->sisa >= $keluarTotal) {
+                $m->sisa -= $keluarTotal;
+                $keluarTotal = 0;
+            } else {
+                $keluarTotal -= $m->sisa;
+                $m->sisa = 0;
+            }
+            $m->save();
+        }
+    }
+
+    // =====================
+    // DETAIL LAPORAN
+    // =====================
     public function detail()
     {
-        $rotiList = Roti::all();
         $laporan = [];
+        $hariIni = Carbon::today()->toDateString();
 
-        foreach ($rotiList as $roti) {
-            $masuk = RotiMasuk::where('roti_id', $roti->id)->orderBy('tanggal')->get();
-            $keluar = RotiKeluar::where('roti_id', $roti->id)->orderBy('tanggal')->get();
+        foreach (Roti::all() as $roti) {
 
-            $tanggalAwal = $masuk->min('tanggal') ?? $keluar->min('tanggal') ?? Carbon::now()->toDateString();
-            $tanggalAkhir = Carbon::now()->toDateString();
+            // TOTAL SEBELUM HARI INI
+            $totalMasukSebelum = RotiMasuk::where('roti_id', $roti->id)
+                ->where('tanggal', '<', $hariIni)
+                ->sum('jumlah');
 
-            $periode = new \DatePeriod(
-                new \DateTime($tanggalAwal),
-                new \DateInterval('P1D'),
-                new \DateTime(Carbon::parse($tanggalAkhir)->addDay()->toDateString())
-            );
+            $totalKeluarSebelum = RotiKeluar::where('roti_id', $roti->id)
+                ->where('tanggal', '<', $hariIni)
+                ->sum('jumlah');
 
-            $stokAwal = 0; // stok awal hari pertama = 0
-            $detailHari = [];
+            $stokAwal = $totalMasukSebelum - $totalKeluarSebelum;
 
-            foreach ($periode as $tanggal) {
-                $tgl = $tanggal->format('Y-m-d');
+            // HARI INI
+            $barangDatang = RotiMasuk::where('roti_id', $roti->id)
+                ->where('tanggal', $hariIni)
+                ->sum('jumlah');
 
-                $barangDatang   = $masuk->where('tanggal', $tgl)->sum('jumlah');
-                $barangTerpakai = $keluar->where('tanggal', $tgl)->sum('jumlah');
+            $barangTerpakai = RotiKeluar::where('roti_id', $roti->id)
+                ->where('tanggal', $hariIni)
+                ->sum('jumlah');
 
-                // hitung stok akhir = stok awal + masuk - keluar
-                $stokAkhir = $stokAwal + $barangDatang - $barangTerpakai;
+            $stokAkhir = $stokAwal + $barangDatang - $barangTerpakai;
 
-                // histori FIFO
-                $fifoHistori = RotiMasuk::where('roti_id', $roti->id)
-                    ->orderBy('tanggal', 'desc') // terbaru dulu
-                    ->orderBy('created_at', 'desc') // kalau tanggal sama, paling baru ditampilkan dulu
-                    ->get()
-                    ->map(fn($m) => [
-                        'tanggal_masuk' => $m->tanggal,
-                        'jumlah'        => $m->jumlah,
-                        'sisa'          => $m->sisa
-                    ]);
+            // FIFO DETAIL
+            $fifo = RotiMasuk::with('user')
+                ->where('roti_id', $roti->id)
+                ->orderBy('tanggal')
+                ->get()
+                ->map(fn($m) => [
+                    'tanggal_masuk' => $m->tanggal,
+                    'jumlah'        => $m->jumlah,
+                    'sisa'          => $m->sisa,
+                    'user'          => $m->user->name ?? '-',
+                ]);
 
-                // hanya simpan detail untuk hari ini
-                if ($tgl == Carbon::today()->toDateString()) {
-                    $detailHari[] = [
-                        'id'              => $roti->id . '_' . $tgl,
-                        'tanggal'         => $tgl,
-                        'stok_awal'       => $stokAwal,       // stok awal = stok akhir kemarin
-                        'barang_datang'   => $barangDatang,
-                        'barang_terpakai' => $barangTerpakai,
-                        'stok_akhir'      => $stokAkhir,      // stok akhir hari ini
-                        'stok_minimal'    => $roti->stok_minimal,
-                        'satuan'          => $roti->satuan,
-                        'fifo'            => $fifoHistori,
-                    ];
-                }
+            $userMasuk = RotiMasuk::with('user')
+                ->where('roti_id', $roti->id)
+                ->where('tanggal', $hariIni)
+                ->latest()
+                ->first();
 
-                // simpan stok akhir hari ini → jadi stok awal besok
-                $stokAwal = $stokAkhir;
-            }
+            $userKeluar = RotiKeluar::with('user')
+                ->where('roti_id', $roti->id)
+                ->where('tanggal', $hariIni)
+                ->latest()
+                ->first();
 
             $laporan[] = [
-                'roti'   => $roti,
-                'detail' => $detailHari,
+                'roti' => $roti,
+                'detail' => [[
+                    'id'              => $roti->id . '_' . $hariIni,
+                    'tanggal'         => $hariIni,
+                    'stok_awal'       => max(0, $stokAwal),
+                    'barang_datang'   => $barangDatang,
+                    'barang_terpakai' => $barangTerpakai,
+                    'stok_akhir'      => max(0, $stokAkhir),
+                    'stok_minimal'    => $roti->stok_minimal,
+                    'satuan'          => $roti->satuan,
+                    'user_masuk'      => $userMasuk->user->name ?? '-',
+                    'user_keluar'     => $userKeluar->user->name ?? '-',
+                    'fifo'            => $fifo,
+                ]]
             ];
         }
 
