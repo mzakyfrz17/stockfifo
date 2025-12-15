@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class RotiKeluar extends Model
 {
     protected $table = 'roti_keluar';
-    protected $fillable = ['roti_id', 'tanggal', 'jumlah'];
+    protected $fillable = ['roti_id', 'user_id', 'tanggal', 'jumlah'];
 
     public function roti()
     {
