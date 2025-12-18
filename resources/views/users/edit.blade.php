@@ -28,10 +28,10 @@
                                 <select name="role" id="role" class="form-select">
                                     <option value="manager" {{ $user->role == 'manager' ? 'selected' : '' }}>Manager
                                     </option>
+                                    <option value="bar" {{ $user->role == 'bar' ? 'selected' : '' }}>Barista</option>
                                     <option value="kitchen" {{ $user->role == 'kitchen' ? 'selected' : '' }}>Kitchen
                                     </option>
                                     <option value="roti" {{ $user->role == 'roti' ? 'selected' : '' }}>Roti</option>
-                                    <option value="bar" {{ $user->role == 'bar' ? 'selected' : '' }}>Barista</option>
                                 </select>
                             </div>
                         </div>

@@ -11,7 +11,8 @@ class UserController extends Controller
     // Tampilkan semua user kecuali role manager
     public function index()
     {
-        $users = User::where('role', '!=', 'manager')->get();
+        // $users = User::where('role', '!=', 'manager')->get();
+        $users = User::get();
         return view('users.index', compact('users'));
     }
 
