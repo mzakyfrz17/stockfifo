@@ -36,10 +36,10 @@
                             @if ($role === 'manager')
                                 <form method="GET" action="{{ route('home') }}" class="d-flex">
                                     <select name="kategori" class="form-select me-2" onchange="this.form.submit()">
-                                        <option value="roti" {{ $kategori == 'roti' ? 'selected' : '' }}>Roti</option>
                                         <option value="bar" {{ $kategori == 'bar' ? 'selected' : '' }}>Bar</option>
                                         <option value="kitchen" {{ $kategori == 'kitchen' ? 'selected' : '' }}>Kitchen
                                         </option>
+                                        <option value="roti" {{ $kategori == 'roti' ? 'selected' : '' }}>Roti</option>
                                     </select>
                                 </form>
                             @endif
