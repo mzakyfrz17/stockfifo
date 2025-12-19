@@ -6,8 +6,43 @@
     <title>Laporan Stok Minimal</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            margin-bottom: 15px;
+        }
+
+        .header-table td {
+            border: none;
+            vertical-align: middle;
+        }
+
+        .logo {
+            width: 90px;
+        }
+
+        .logo img {
+            height: 65px;
+        }
+
+        .title {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .title h3 {
+            margin: 0;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        .title p {
+            margin: 3px 0 0;
+            font-size: 11px;
         }
 
         table {
@@ -25,13 +60,28 @@
 
         th {
             background-color: #eee;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <h3>Laporan Stok Minimal - {{ ucfirst($kategori) }}</h3>
-    <p>Tanggal Cetak: {{ $tanggalCetak }}</p>
+
+    <!-- HEADER -->
+    <table class="header-table">
+        <tr>
+            <td class="logo">
+                <img src="{{ public_path('assets/img/ktb1.png') }}" alt="Logo">
+            </td>
+            <td class="title">
+                <h3>Laporan Stok Minimal</h3>
+                <p>Kategori: {{ ucfirst($kategori) }}</p>
+                <p>Tanggal Cetak: {{ $tanggalCetak }}</p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- TABEL DATA -->
     <table>
         <thead>
             <tr>
@@ -54,6 +104,7 @@
             @endforeach
         </tbody>
     </table>
+
 </body>
 
 </html>

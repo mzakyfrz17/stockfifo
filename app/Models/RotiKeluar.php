@@ -3,14 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Roti;
 use App\Models\User;
 
 class RotiKeluar extends Model
 {
-    use HasFactory;
-
     protected $table = 'roti_keluar';
 
     protected $fillable = [
