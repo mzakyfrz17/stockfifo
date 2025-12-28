@@ -28,7 +28,7 @@
                                     @foreach ($item['detail'] as $detail)
                                         <tr @if ($detail['stok_akhir'] < $detail['stok_minimal']) style="background:#ffdddd" @endif>
                                             <td>{{ $item['bar']->nama }} ({{ $item['bar']->kd_bar }})</td>
-                                            <td>{{ $detail['tanggal'] }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($detail['tanggal'])->format('d-m-Y') }}</td>
                                             <td>{{ $detail['stok_awal'] }}</td>
                                             <td>
                                                 <span>
@@ -189,7 +189,8 @@
                                                     <tbody>
                                                         @foreach ($detail['fifo'] as $fifo)
                                                             <tr>
-                                                                <td>{{ $fifo['tanggal_masuk'] }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($fifo['tanggal_masuk'])->format('d-m-Y') }}
+                                                                </td>
                                                                 <td>{{ $fifo['jumlah'] }}</td>
                                                                 <td>{{ $fifo['sisa'] }}</td>
                                                             </tr>
