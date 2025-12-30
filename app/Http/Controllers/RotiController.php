@@ -23,14 +23,25 @@ class RotiController extends Controller
     public function storeRoti(Request $request)
     {
         $request->validate([
-            'kd_roti'       => 'required|unique:roti,kd_roti',
-            'nama'          => 'required',
-            'satuan'        => 'required',
-            'stok_minimal'  => 'required|integer',
+            'nama'         => 'required',
+            'satuan'       => ['required', 'regex:/^[a-zA-Z\s]+$/'],
+            'stok_minimal' => 'required|integer',
         ]);
 
-        Roti::create($request->all());
-        return redirect()->route('roti.index')->with('success', 'Data roti berhasil ditambahkan');
+        // Generate kode RT001
+        $last = Roti::orderBy('id', 'desc')->first();
+        $number = $last ? intval(substr($last->kd_roti, 2)) + 1 : 1;
+        $kd_roti = 'RT' . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        Roti::create([
+            'kd_roti'       => $kd_roti,
+            'nama'          => $request->nama,
+            'satuan'        => $request->satuan,
+            'stok_minimal'  => $request->stok_minimal,
+        ]);
+
+        return redirect()->route('roti.index')
+            ->with('success', 'Data roti berhasil ditambahkan');
     }
 
     public function update(Request $request, $id)
@@ -38,21 +49,37 @@ class RotiController extends Controller
         $roti = Roti::findOrFail($id);
 
         $request->validate([
-            'kd_roti'       => 'required|unique:roti,kd_roti,' . $roti->id,
-            'nama'          => 'required',
-            'satuan'        => 'required',
-            'stok_minimal'  => 'required|integer',
+            'nama'         => 'required',
+            'satuan'       => ['required', 'regex:/^[a-zA-Z\s]+$/'],
+            'stok_minimal' => 'required|integer',
         ]);
 
-        $roti->update($request->all());
-        return redirect()->route('roti.index')->with('success', 'Data roti berhasil diupdate');
+        $roti->update([
+            'nama'         => $request->nama,
+            'satuan'       => $request->satuan,
+            'stok_minimal' => $request->stok_minimal,
+        ]);
+
+        return redirect()->route('roti.index')
+            ->with('success', 'Data roti berhasil diupdate');
     }
+
 
     public function destroy($id)
     {
-        Roti::findOrFail($id)->delete();
-        return back()->with('success', 'Data roti berhasil dihapus');
+        $roti = Roti::findOrFail($id);
+
+        if ($roti->masuk()->exists() || $roti->keluar()->exists()) {
+            return redirect()->route('roti.index')
+                ->with('error', 'Data roti tidak bisa dihapus karena sudah memiliki transaksi');
+        }
+
+        $roti->delete();
+
+        return redirect()->route('roti.index')
+            ->with('success', 'Data roti berhasil dihapus');
     }
+
 
     // =====================
     // BARANG MASUK

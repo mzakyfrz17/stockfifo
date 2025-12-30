@@ -54,6 +54,7 @@
 
 <body>
     <div class="wrapper">
+
         <!-- Sidebar -->
         @include('layouts.sidebar')
         <!-- End Sidebar -->
@@ -146,6 +147,27 @@
     <!-- Kaiadmin DEMO methods -->
     <script src="{{ asset('assets/js/setting-demo.js') }}"></script>
     <script src="{{ asset('assets/js/demo.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}'
+            });
+        </script>
+    @endif
+
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}'
+            });
+        </script>
+    @endif
+
     <script>
         $(document).ready(function() {
             $(".basic-datatables").DataTable({});
@@ -229,6 +251,26 @@
             lineWidth: "2",
             lineColor: "#ffa534",
             fillColor: "rgba(255, 165, 52, .14)",
+        });
+    </script>
+    <script>
+        document.querySelectorAll('.form-hapus').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Yakin hapus data?',
+                    text: 'Data tidak bisa dikembalikan!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
         });
     </script>
 </body>

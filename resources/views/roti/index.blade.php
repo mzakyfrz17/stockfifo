@@ -38,19 +38,24 @@
                                         <td>{{ $row->satuan }}</td>
                                         <td>{{ $row->stok_minimal }}</td>
                                         <td>
-                                            <!-- Tombol Edit -->
-                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                                data-bs-target="#editRotiModal{{ $row->id }}">
-                                                Edit
-                                            </button>
+                                            <div class="d-flex gap-3">
+                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                                    data-bs-target="#editRotiModal{{ $row->id }}">
+                                                    Edit
+                                                </button>
 
-                                            <!-- Tombol Hapus -->
-                                            <form action="{{ route('roti.destroy', $row->id) }}" method="POST"
-                                                style="display:inline;">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Hapus data ini?')">Hapus</button>
-                                            </form>
+                                                <!-- Tombol Hapus -->
+                                                <form action="{{ route('roti.destroy', $row->id) }}" method="POST"
+                                                    class="form-hapus">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <!-- Tombol Edit -->
+
                                         </td>
                                     </tr>
 
@@ -68,9 +73,10 @@
                                                     <div class="modal-body">
                                                         <div class="mb-3">
                                                             <label>Kode Roti</label>
-                                                            <input type="text" name="kd_roti" class="form-control"
-                                                                value="{{ $row->kd_roti }}" required>
+                                                            <input type="text" class="form-control"
+                                                                value="{{ $row->kd_roti }}" readonly>
                                                         </div>
+
                                                         <div class="mb-3">
                                                             <label>Nama</label>
                                                             <input type="text" name="nama" class="form-control"
@@ -88,7 +94,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button class="btn btn-secondary"
+                                                        <button class="btn btn-secondary" type="button"
                                                             data-bs-dismiss="modal">Batal</button>
                                                         <button type="submit" class="btn btn-success">Simpan</button>
                                                     </div>
@@ -116,10 +122,10 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label>Kode Roti</label>
                             <input type="text" name="kd_roti" class="form-control" required>
-                        </div>
+                        </div> --}}
                         <div class="mb-3">
                             <label>Nama</label>
                             <input type="text" name="nama" class="form-control" required>

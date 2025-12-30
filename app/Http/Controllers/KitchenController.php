@@ -8,6 +8,7 @@ use App\Models\KitchenKeluar;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class KitchenController extends Controller
 {
@@ -23,36 +24,70 @@ class KitchenController extends Controller
     public function storeKitchen(Request $request)
     {
         $request->validate([
-            'kd_kitchen'   => 'required|unique:kitchen,kd_kitchen',
             'nama'         => 'required',
-            'satuan'       => 'required',
+            'satuan'       => 'required|regex:/^[a-zA-Z\s]+$/',
             'stok_minimal' => 'required|integer',
+        ], [
+            'satuan.regex' => 'Satuan hanya boleh huruf'
         ]);
 
-        Kitchen::create($request->all());
-        return redirect()->route('kitchen.index')->with('success', 'Data kitchen berhasil ditambahkan');
+        // Generate kode kitchen otomatis
+        $last = Kitchen::orderBy('id', 'desc')->first();
+        $number = $last ? intval(substr($last->kd_kitchen, 2)) + 1 : 1;
+        $kdKitchen = 'KT' . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        Kitchen::create([
+            'kd_kitchen'   => $kdKitchen,
+            'nama'         => $request->nama,
+            'satuan'       => $request->satuan,
+            'stok_minimal' => $request->stok_minimal,
+        ]);
+
+        return redirect()->route('kitchen.index')
+            ->with('success', 'Data kitchen berhasil ditambahkan');
     }
+
 
     public function update(Request $request, $id)
     {
         $kitchen = Kitchen::findOrFail($id);
 
         $request->validate([
-            'kd_kitchen'   => 'required|unique:kitchen,kd_kitchen,' . $kitchen->id,
             'nama'         => 'required',
-            'satuan'       => 'required',
+            'satuan'       => 'required|regex:/^[a-zA-Z\s]+$/',
             'stok_minimal' => 'required|integer',
+        ], [
+            'satuan.regex' => 'Satuan hanya boleh huruf'
         ]);
 
-        $kitchen->update($request->all());
-        return redirect()->route('kitchen.index')->with('success', 'Data kitchen berhasil diupdate');
+        $kitchen->update([
+            'nama'         => $request->nama,
+            'satuan'       => $request->satuan,
+            'stok_minimal' => $request->stok_minimal,
+        ]);
+
+        return redirect()->route('kitchen.index')
+            ->with('success', 'Data kitchen berhasil diupdate');
     }
+
 
     public function destroy($id)
     {
-        Kitchen::findOrFail($id)->delete();
-        return back()->with('success', 'Data kitchen berhasil dihapus');
+        $kitchen = Kitchen::with(['masuk', 'keluar'])->findOrFail($id);
+
+        if ($kitchen->masuk->count() > 0 || $kitchen->keluar->count() > 0) {
+            return redirect()->back()->with(
+                'error',
+                'Data tidak bisa dihapus karena sudah memiliki transaksi masuk / keluar'
+            );
+        }
+
+        $kitchen->delete();
+
+        return redirect()->back()->with('success', 'Data kitchen berhasil dihapus');
     }
+
+
 
     // =====================
     // BARANG MASUK

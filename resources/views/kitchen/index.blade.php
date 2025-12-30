@@ -38,19 +38,30 @@
                                         <td>{{ $row->satuan }}</td>
                                         <td>{{ $row->stok_minimal }}</td>
                                         <td>
-                                            <!-- Tombol Edit -->
-                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                                data-bs-target="#editkitchenModal{{ $row->id }}">
-                                                Edit
-                                            </button>
+                                            <div class="d-flex gap-3">
+                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                                    data-bs-target="#editkitchenModal{{ $row->id }}">
+                                                    Edit
+                                                </button>
 
-                                            <!-- Tombol Hapus -->
-                                            <form action="{{ route('kitchen.destroy', $row->id) }}" method="POST"
-                                                style="display:inline;">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Hapus data ini?')">Hapus</button>
-                                            </form>
+                                                <!-- Tombol Hapus -->
+                                                {{-- <button type="button" class="btn btn-sm btn-danger"
+                                                onclick="hapusData('{{ route('kitchen.destroy', $row->id) }}')">
+                                                Hapus
+                                            </button> --}}
+
+                                                <form action="{{ route('kitchen.destroy', $row->id) }}" method="POST"
+                                                    class="form-hapus">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <!-- Tombol Edit -->
+
+
                                         </td>
                                     </tr>
 
@@ -68,8 +79,8 @@
                                                     <div class="modal-body">
                                                         <div class="mb-3">
                                                             <label>Kode kitchen</label>
-                                                            <input type="text" name="kd_kitchen" class="form-control"
-                                                                value="{{ $row->kd_kitchen }}" required>
+                                                            <input type="text" class="form-control"
+                                                                value="{{ $row->kd_kitchen }}" readonly>
                                                         </div>
                                                         <div class="mb-3">
                                                             <label>Nama</label>
@@ -79,7 +90,9 @@
                                                         <div class="mb-3">
                                                             <label>Satuan</label>
                                                             <input type="text" name="satuan" class="form-control"
-                                                                value="{{ $row->satuan }}" required>
+                                                                value="{{ $row->satuan }}"
+                                                                oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
+                                                                required>
                                                         </div>
                                                         <div class="mb-3">
                                                             <label>Stok Minimal</label>
@@ -88,8 +101,11 @@
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Batal</button>
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">
+                                                            Batal
+                                                        </button>
+
                                                         <button type="submit" class="btn btn-success">Simpan</button>
                                                     </div>
                                                 </div>
@@ -116,17 +132,18 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label>Kode kitchen</label>
                             <input type="text" name="kd_kitchen" class="form-control" required>
-                        </div>
+                        </div> --}}
                         <div class="mb-3">
                             <label>Nama</label>
                             <input type="text" name="nama" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label>Satuan</label>
-                            <input type="text" name="satuan" class="form-control" required>
+                            <input type="text" name="satuan" class="form-control"
+                                oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')" required>
                         </div>
                         <div class="mb-3">
                             <label>Stok Minimal</label>

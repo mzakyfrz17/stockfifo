@@ -23,14 +23,25 @@ class BarController extends Controller
     public function storeBar(Request $request)
     {
         $request->validate([
-            'kd_bar'        => 'required|unique:bar,kd_bar',
-            'nama'          => 'required',
-            'satuan'        => 'required',
-            'stok_minimal'  => 'required|integer',
+            'nama'         => 'required',
+            'satuan'       => ['required', 'regex:/^[a-zA-Z\s]+$/'],
+            'stok_minimal' => 'required|integer',
         ]);
 
-        Bar::create($request->all());
-        return redirect()->route('bar.index')->with('success', 'Data bar berhasil ditambahkan');
+        // Generate kode otomatis BR001
+        $last = Bar::orderBy('id', 'desc')->first();
+        $number = $last ? intval(substr($last->kd_bar, 2)) + 1 : 1;
+        $kd_bar = 'BR' . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        Bar::create([
+            'kd_bar'        => $kd_bar,
+            'nama'          => $request->nama,
+            'satuan'        => $request->satuan,
+            'stok_minimal'  => $request->stok_minimal,
+        ]);
+
+        return redirect()->route('bar.index')
+            ->with('success', 'Data bar berhasil ditambahkan');
     }
 
     public function update(Request $request, $id)
@@ -38,21 +49,37 @@ class BarController extends Controller
         $bar = Bar::findOrFail($id);
 
         $request->validate([
-            'kd_bar'        => 'required|unique:bar,kd_bar,' . $bar->id,
-            'nama'          => 'required',
-            'satuan'        => 'required',
-            'stok_minimal'  => 'required|integer',
+            'nama'         => 'required',
+            'satuan'       => ['required', 'regex:/^[a-zA-Z\s]+$/'],
+            'stok_minimal' => 'required|integer',
         ]);
 
-        $bar->update($request->all());
-        return redirect()->route('bar.index')->with('success', 'Data bar berhasil diupdate');
+        $bar->update([
+            'nama' => $request->nama,
+            'satuan' => $request->satuan,
+            'stok_minimal' => $request->stok_minimal,
+        ]);
+
+        return redirect()->route('bar.index')
+            ->with('success', 'Data bar berhasil diupdate');
     }
+
 
     public function destroy($id)
     {
-        Bar::findOrFail($id)->delete();
-        return back()->with('success', 'Data bar berhasil dihapus');
+        $bar = Bar::findOrFail($id);
+
+        if ($bar->masuk()->exists() || $bar->keluar()->exists()) {
+            return redirect()->route('bar.index')
+                ->with('error', 'Data bar tidak bisa dihapus karena sudah memiliki transaksi');
+        }
+
+        $bar->delete();
+
+        return redirect()->route('bar.index')
+            ->with('success', 'Data bar berhasil dihapus');
     }
+
 
     // =====================
     // BARANG MASUK
