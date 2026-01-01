@@ -28,7 +28,7 @@
                                 <select name="role" id="role" class="form-select" required>
                                     <option value="" disabled selected>Pilih Role</option>
                                     <option value="manager">Manager</option>
-                                    <option value="bar">Barista</option>
+                                    <option value="bar">Bar</option>
                                     <option value="kitchen">Kitchen</option>
                                     <option value="roti">Roti</option>
                                 </select>
