@@ -187,7 +187,9 @@ class RotiController extends Controller
 
         foreach (Roti::all() as $roti) {
 
+            // =====================
             // TOTAL SEBELUM HARI INI
+            // =====================
             $totalMasukSebelum = RotiMasuk::where('roti_id', $roti->id)
                 ->where('tanggal', '<', $hariIni)
                 ->sum('jumlah');
@@ -198,7 +200,9 @@ class RotiController extends Controller
 
             $stokAwal = $totalMasukSebelum - $totalKeluarSebelum;
 
+            // =====================
             // HARI INI
+            // =====================
             $barangDatang = RotiMasuk::where('roti_id', $roti->id)
                 ->where('tanggal', $hariIni)
                 ->sum('jumlah');
@@ -209,18 +213,31 @@ class RotiController extends Controller
 
             $stokAkhir = $stokAwal + $barangDatang - $barangTerpakai;
 
-            // FIFO DETAIL
-            $fifo = RotiMasuk::with('user')
-                ->where('roti_id', $roti->id)
+            // =====================
+            // FIFO (SAMA SEPERTI KITCHEN & BAR)
+            // =====================
+            $fifo = RotiMasuk::where('roti_id', $roti->id)
                 ->orderBy('tanggal')
                 ->get()
-                ->map(fn($m) => [
-                    'tanggal_masuk' => $m->tanggal,
-                    'jumlah'        => $m->jumlah,
-                    'sisa'          => $m->sisa,
-                    'user'          => $m->user->name ?? '-',
-                ]);
+                ->map(function ($m) use ($roti) {
 
+                    // Barang terpakai sesuai tanggal FIFO
+                    $barangTerpakaiTanggal = RotiKeluar::where('roti_id', $roti->id)
+                        ->where('tanggal', $m->tanggal)
+                        ->sum('jumlah');
+
+                    return [
+                        'kode_barang'      => Carbon::parse($m->tanggal)->format('dmY'),
+                        'tanggal'          => $m->tanggal,
+                        'barang_masuk'     => $m->jumlah,
+                        'barang_terpakai'  => $barangTerpakaiTanggal,
+                        'jumlah'           => $m->jumlah,
+                        'sisa'             => $m->sisa,
+                    ];
+                });
+
+
+            // USER HARI INI
             $userMasuk = RotiMasuk::with('user')
                 ->where('roti_id', $roti->id)
                 ->where('tanggal', $hariIni)
@@ -231,6 +248,14 @@ class RotiController extends Controller
                 ->where('roti_id', $roti->id)
                 ->where('tanggal', $hariIni)
                 ->latest()
+                ->first();
+
+            // =====================
+            // REKOMENDASI FIFO
+            // =====================
+            $rekomendasi = RotiMasuk::where('roti_id', $roti->id)
+                ->where('sisa', '>', 0)
+                ->orderBy('tanggal')
                 ->first();
 
             $laporan[] = [
@@ -247,6 +272,9 @@ class RotiController extends Controller
                     'user_masuk'      => $userMasuk->user->name ?? '-',
                     'user_keluar'     => $userKeluar->user->name ?? '-',
                     'fifo'            => $fifo,
+                    'rekomendasi'     => $rekomendasi
+                        ? Carbon::parse($rekomendasi->tanggal)->format('dmY')
+                        : '-',
                 ]]
             ];
         }

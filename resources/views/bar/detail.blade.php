@@ -170,18 +170,37 @@
                         @foreach ($laporan as $item)
                             @foreach ($item['detail'] as $detail)
                                 <div class="modal fade" id="modalFIFO{{ $detail['id'] }}" tabindex="-1">
-                                    <div class="modal-dialog modal-lg">
+                                    <div class="modal-dialog modal-xl">
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title">Detail FIFO</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
+
                                             <div class="modal-body">
-                                                <p><b>{{ $item['bar']->nama }}</b> ({{ $item['bar']->kd_bar }})</p>
-                                                <table class="table table-bordered basic-datatables">
-                                                    <thead>
+
+                                                {{-- HEADER --}}
+                                                <div class="mb-3">
+                                                    <h5 class="mb-1">
+                                                        {{ $item['bar']->nama }}
+                                                        ({{ $item['bar']->kd_bar }})
+                                                    </h5>
+                                                    <p class="mb-0">
+                                                        <b>Rekomendasi Barang Dipakai (FIFO):</b>
+                                                        <span class="badge bg-success">
+                                                            Kode {{ $detail['rekomendasi'] }}
+                                                        </span>
+                                                    </p>
+                                                </div>
+
+                                                {{-- TABLE FIFO --}}
+                                                <table class="table table-bordered table-striped basic-datatables">
+                                                    <thead class="table-dark">
                                                         <tr>
-                                                            <th>Tanggal Masuk</th>
+                                                            <th>Kode Barang</th>
+                                                            <th>Tanggal</th>
+                                                            <th>Barang Masuk</th>
+                                                            <th>Barang Terpakai</th>
                                                             <th>Jumlah</th>
                                                             <th>Sisa</th>
                                                         </tr>
@@ -189,14 +208,18 @@
                                                     <tbody>
                                                         @foreach ($detail['fifo'] as $fifo)
                                                             <tr>
-                                                                <td>{{ \Carbon\Carbon::parse($fifo['tanggal_masuk'])->format('d-m-Y') }}
+                                                                <td>{{ $fifo['kode_barang'] }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($fifo['tanggal'])->format('d-m-Y') }}
                                                                 </td>
+                                                                <td>{{ $fifo['barang_masuk'] }}</td>
+                                                                <td>{{ $fifo['barang_terpakai'] }}</td>
                                                                 <td>{{ $fifo['jumlah'] }}</td>
                                                                 <td>{{ $fifo['sisa'] }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
+
                                             </div>
                                         </div>
                                     </div>

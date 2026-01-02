@@ -188,11 +188,88 @@ class KitchenController extends Controller
     // =====================
     // DETAIL LAPORAN
     // =====================
+    // public function detail()
+    // {
+    //     $laporan = [];
+    //     $hariIni = Carbon::today()->toDateString();
+    //     $kemarin = Carbon::yesterday()->toDateString();
+
+    //     foreach (Kitchen::all() as $kitchen) {
+
+    //         // =====================
+    //         // TOTAL SEBELUM HARI INI
+    //         // =====================
+    //         $totalMasukSebelum = KitchenMasuk::where('kitchen_id', $kitchen->id)
+    //             ->where('tanggal', '<', $hariIni)
+    //             ->sum('jumlah');
+
+    //         $totalKeluarSebelum = KitchenKeluar::where('kitchen_id', $kitchen->id)
+    //             ->where('tanggal', '<', $hariIni)
+    //             ->sum('jumlah');
+
+    //         // STOK AWAL HARI INI (stok akhir kemarin)
+    //         $stokAwal = $totalMasukSebelum - $totalKeluarSebelum;
+
+    //         // =====================
+    //         // HARI INI
+    //         // =====================
+    //         $barangDatang = KitchenMasuk::where('kitchen_id', $kitchen->id)
+    //             ->where('tanggal', $hariIni)
+    //             ->sum('jumlah');
+
+    //         $barangTerpakai = KitchenKeluar::where('kitchen_id', $kitchen->id)
+    //             ->where('tanggal', $hariIni)
+    //             ->sum('jumlah');
+
+    //         $stokAkhir = $stokAwal + $barangDatang - $barangTerpakai;
+
+    //         // DATA FIFO (sisa per batch)
+    //         $fifo = KitchenMasuk::with('user')
+    //             ->where('kitchen_id', $kitchen->id)
+    //             ->orderBy('tanggal')
+    //             ->get()
+    //             ->map(fn($m) => [
+    //                 'tanggal_masuk' => $m->tanggal,
+    //                 'jumlah'        => $m->jumlah,
+    //                 'sisa'          => $m->sisa,
+    //                 'user'          => $m->user->name ?? '-',
+    //             ]);
+    //         $userMasuk = KitchenMasuk::with('user')
+    //             ->where('kitchen_id', $kitchen->id)
+    //             ->where('tanggal', $hariIni)
+    //             ->latest()
+    //             ->first();
+
+    //         $userKeluar = KitchenKeluar::with('user')
+    //             ->where('kitchen_id', $kitchen->id)
+    //             ->where('tanggal', $hariIni)
+    //             ->latest()
+    //             ->first();
+    //         $laporan[] = [
+    //             'kitchen' => $kitchen,
+    //             'detail'  => [[
+    //                 'id'              => $kitchen->id . '_' . $hariIni,
+    //                 'tanggal'         => $hariIni,
+    //                 'stok_awal'       => max(0, $stokAwal),
+    //                 'barang_datang'   => $barangDatang,
+    //                 'barang_terpakai' => $barangTerpakai,
+    //                 'stok_akhir'      => max(0, $stokAkhir),
+    //                 'stok_minimal'    => $kitchen->stok_minimal,
+    //                 'satuan'          => $kitchen->satuan,
+    //                 'user_masuk'  => $userMasuk->user->name ?? '-',
+    //                 'user_keluar' => $userKeluar->user->name ?? '-',
+    //                 'fifo'            => $fifo,
+    //             ]]
+    //         ];
+    //     }
+
+    //     return view('kitchen.detail', compact('laporan'));
+    // }
+
     public function detail()
     {
         $laporan = [];
         $hariIni = Carbon::today()->toDateString();
-        $kemarin = Carbon::yesterday()->toDateString();
 
         foreach (Kitchen::all() as $kitchen) {
 
@@ -207,7 +284,6 @@ class KitchenController extends Controller
                 ->where('tanggal', '<', $hariIni)
                 ->sum('jumlah');
 
-            // STOK AWAL HARI INI (stok akhir kemarin)
             $stokAwal = $totalMasukSebelum - $totalKeluarSebelum;
 
             // =====================
@@ -223,17 +299,28 @@ class KitchenController extends Controller
 
             $stokAkhir = $stokAwal + $barangDatang - $barangTerpakai;
 
-            // DATA FIFO (sisa per batch)
-            $fifo = KitchenMasuk::with('user')
-                ->where('kitchen_id', $kitchen->id)
+            // =====================
+            // FIFO
+            // =====================
+            $fifo = KitchenMasuk::where('kitchen_id', $kitchen->id)
                 ->orderBy('tanggal')
                 ->get()
-                ->map(fn($m) => [
-                    'tanggal_masuk' => $m->tanggal,
-                    'jumlah'        => $m->jumlah,
-                    'sisa'          => $m->sisa,
-                    'user'          => $m->user->name ?? '-',
-                ]);
+                ->map(function ($m) use ($kitchen) {
+
+                    // Barang terpakai sesuai tanggal FIFO
+                    $barangTerpakaiTanggal = KitchenKeluar::where('kitchen_id', $kitchen->id)
+                        ->where('tanggal', $m->tanggal)
+                        ->sum('jumlah');
+
+                    return [
+                        'kode_barang'      => Carbon::parse($m->tanggal)->format('dmY'),
+                        'tanggal'          => $m->tanggal,
+                        'barang_masuk'     => $m->jumlah,
+                        'barang_terpakai'  => $barangTerpakaiTanggal,
+                        'jumlah'           => $m->jumlah,
+                        'sisa'             => $m->sisa,
+                    ];
+                });
             $userMasuk = KitchenMasuk::with('user')
                 ->where('kitchen_id', $kitchen->id)
                 ->where('tanggal', $hariIni)
@@ -245,9 +332,16 @@ class KitchenController extends Controller
                 ->where('tanggal', $hariIni)
                 ->latest()
                 ->first();
+
+            // Rekomendasi FIFO (yang paling lama & masih ada sisa)
+            $rekomendasi = KitchenMasuk::where('kitchen_id', $kitchen->id)
+                ->where('sisa', '>', 0)
+                ->orderBy('tanggal')
+                ->first();
+
             $laporan[] = [
                 'kitchen' => $kitchen,
-                'detail'  => [[
+                'detail' => [[
                     'id'              => $kitchen->id . '_' . $hariIni,
                     'tanggal'         => $hariIni,
                     'stok_awal'       => max(0, $stokAwal),
@@ -259,6 +353,9 @@ class KitchenController extends Controller
                     'user_masuk'  => $userMasuk->user->name ?? '-',
                     'user_keluar' => $userKeluar->user->name ?? '-',
                     'fifo'            => $fifo,
+                    'rekomendasi'     => $rekomendasi
+                        ? Carbon::parse($rekomendasi->tanggal)->format('dmY')
+                        : '-',
                 ]]
             ];
         }
